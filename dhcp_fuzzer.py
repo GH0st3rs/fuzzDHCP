@@ -4,6 +4,29 @@ import struct
 from random import randint
 import fcntl
 import sys
+import binascii
+from argparse import ArgumentParser
+import serial
+
+# From /usr/include/linux/if_ether.h
+ETH_P_IP = 0x0800
+DEFAULT_DHCP_CLIENT_PORT = 68
+DEFAULT_DHCP_SERVER_PORT = 67
+DHCPDISCOVER = 1
+DHCPOFFER = 2
+DHCPREQUEST = 3
+DHCPDECLINE = 4
+DHCPACK = 5
+DHCPNAK = 6
+DHCPRELEASE = 7
+DHCPINFORM = 8
+
+
+def parge_args():
+    parser = ArgumentParser(description='DHCP Fuzzer')
+    parser.add_argument('-i', dest='iface', required=True, help='Select source interface')
+    parser.add_argument('-j', dest='log', action='store_true', help='Enable logging (default: False)', default=False)
+    return parser.parse_args()
 
 
 def getHwAddr(ifname):
@@ -14,6 +37,13 @@ def getHwAddr(ifname):
 
 def macToStr(data):
     return ':'.join(['%02x' % ord(char) for char in data])
+
+
+def strToMac(data):
+    mac = b''
+    for x in data.split(':'):
+        mac += chr(int(x, 16)).encode()
+    return mac
 
 
 def rand_byte():
@@ -133,16 +163,17 @@ class UDP(IPv4):
         self.raw += struct.pack('>H', self.udp_chk) + payload
         return super(UDP, self).craftPacket(self.raw)
 
-        
-class DHCPDiscover(UDP):
-    def __init__(self, iface, **kwargs):
-        super(DHCPDiscover, self).__init__(
+
+class DHCPPacket(UDP):
+    def __init__(self, iface, client=True, ptype=DHCPDISCOVER, **kwargs):
+        super(DHCPPacket, self).__init__(
             sport=kwargs.pop('sport'),
             dport=kwargs.pop('dport'),
             **kwargs
         )
         self.iface = iface
-        self.op = 1
+        self.msg_type = ptype
+        self.op = 1 if client else 2
         self.htype = 1
         self.hlen = 6
         self.hops = 0
@@ -153,12 +184,13 @@ class DHCPDiscover(UDP):
         self.yiaddr = rand_qword()
         self.siaddr = rand_qword()
         self.giaddr = rand_qword()
-        self.chaddr = getHwAddr(self.iface).ljust(16, b'\x00')
+        self.chaddr = getHwAddr(self.iface).ljust(16, b'\xff')
+        # self.chaddr = strToMac('00:10:18:00:00:01').ljust(16, b'\xff')
         self.sname = rand_string(64)
         self.file = rand_string(128)
-        self.options_magic = b"\x63\x82\x53\x63"
+        self.options_magic = b'\x63\x82\x53\x63'
 
-    def craftPacket(self):
+    def craftPacket(self, index):
         self.raw = struct.pack('BBBBIHHIIII16s64s128s4s',
                                self.op,  # Message type: Boot Request (1)
                                self.htype,  # Hardware type: Ethernet
@@ -177,79 +209,92 @@ class DHCPDiscover(UDP):
                                self.options_magic,  # Magic cookie: DHCP
                                )
         # Options
-        options = b"\x35\x01\x01"
-        options += struct.pack('!B', 60) + struct.pack('!B', rand_byte()) + rand_string(255)
-        options += struct.pack('!B', 255)
-        self.raw += options
-        return super(DHCPDiscover, self).craftPacket(self.raw)
+        self.raw += self.craftOptions(index)
+        return super(DHCPPacket, self).craftPacket(self.raw)
+
+    def craftOptions(self, index):
+        code = index
+        length = rand_byte() if index != 60 else 120
+        value = b'A' * 255
+        print('Options:\nCode: %d\nLength: %d\nValue: (%d) %s\n' % (code, length, len(value), binascii.hexlify(value)))
+        self.options = struct.pack('!BBB', 53, 1, self.msg_type)  # Message type
+        self.options += struct.pack('!BB255s', code, length, value)  # option
+        self.options += struct.pack('!B', 255)  # [END]
+        return self.options
 
 
-class DHCPOffer:
-    def __init__(self, data, transID):
-        self.data = data
-        self.transID = transID
-        self.offerIP = ''
-        self.nextServerIP = ''
-        self.DHCPServerIdentifier = ''
-        self.leaseTime = ''
-        self.router = ''
-        self.subnetMask = ''
-        self.DNS = []
-        self.unpack()
-
-    def unpack(self):
-        if self.data[4:8] == self.transID:
-            self.offerIP = '.'.join(map(lambda x: str(x), data[16:20]))
-            self.nextServerIP = '.'.join(map(lambda x: str(x), data[20:24]))  # c'est une option
-            self.DHCPServerIdentifier = '.'.join(map(lambda x: str(x), data[245:249]))
-            self.leaseTime = str(struct.unpack('!L', data[251:255])[0])
-            self.router = '.'.join(map(lambda x: str(x), data[257:261]))
-            self.subnetMask = '.'.join(map(lambda x: str(x), data[263:267]))
-            # print self.router, self.subnetMask, self.leaseTime, self.DHCPServerIdentifier, repr(self.offerIP)
-            print(repr(data))
-            print(repr(data[268]))
-            dnsNB = int(data[268] / 4)
-            for i in range(0, 4 * dnsNB, 4):
-                self.DNS.append('.'.join(map(lambda x: str(x), data[269 + i:269 + i + 4])))
-
-    def printOffer(self):
-        key = ['DHCP Server', 'Offered IP address', 'subnet mask', 'lease time (s)', 'default gateway']
-        val = [self.DHCPServerIdentifier, self.offerIP, self.subnetMask, self.leaseTime, self.router]
-        for i in range(4):
-            print('{0:20s} : {1:15s}'.format(key[i], val[i]))
-
-        print('{0:20s}'.format('DNS Servers') + ' : ', )  # end=''   here also have error.
-        if self.DNS:
-            print('{0:15s}'.format(self.DNS[0]))
-        if len(self.DNS) > 1:
-            for i in range(1, len(self.DNS)):
-                print('{0:22s} {1:15s}'.format(' ', self.DNS[i]))
+def logger(s):
+    data = s.read(4096)
+    if 'SigHandler' in data:
+        dump = s.read_until('HELO')
+        return (False, data + dump)
+    return (True, None)
 
 
-def sender():
+def sender(src_iface, index):
     # defining the socket
-    dhcps = socket.socket(socket.AF_PACKET, socket.SOCK_DGRAM, socket.htons(0x0800))  # internet, UDP
+    dhcps = socket.socket(socket.AF_PACKET, socket.SOCK_DGRAM, socket.htons(ETH_P_IP))  # internet, UDP
     dhcps.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     dhcps.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-    # buiding and sending the DHCPDiscover packet
-    discoverPacket = DHCPDiscover(iface='enp2s0', sport=68, dport=67, src_ip='0.0.0.0', dst_ip='255.255.255.255')
-    dhcps.sendto(discoverPacket.craftPacket(), ('enp2s0', 0x0800, 0, 0, b'\xFF' * 6))
+    # buiding and sending the DHCP packet
+    dhcpPacket = DHCPPacket(
+        iface=src_iface,
+        sport=DEFAULT_DHCP_CLIENT_PORT,
+        dport=DEFAULT_DHCP_SERVER_PORT,
+        src_ip='0.0.0.0',
+        dst_ip='255.255.255.255',
+        client=True,
+        ptype=DHCPDISCOVER
+    )
+    data = dhcpPacket.craftPacket(index)
+    log('XID: %d\nOptions: %s\nPacket: %s' % (
+        dhcpPacket.xid,
+        binascii.hexlify(dhcpPacket.options),
+        binascii.hexlify(data)
+    ))
+    dhcps.sendto(data, (src_iface, ETH_P_IP, 0, 0, b'\xFF' * 6))
 
     print('\nDHCP Discover sent waiting for reply...')
     # receiving DHCPOffer packet
     dhcps.settimeout(2)
-    try:
-        while True:
-            data = dhcps.recv(1024)[28:]
-            received_xid = struct.unpack('I', data[4:8])[0]
-            if discoverPacket.xid == received_xid:
-                print('DHCPOffer receied: %d' % discoverPacket.xid)
-                break
-    except socket.timeout as e:
-        print(e)
+    # try:
+    #     while True:
+    #         data = dhcps.recv(1024)[28:]
+    #         received_xid = struct.unpack('I', data[4:8])[0]
+    #         if dhcpPacket.xid == received_xid:
+    #             print('DHCPOffer receied: %d' % dhcpPacket.xid)
+    #             break
+    # except socket.timeout as e:
+    #     print(e)
     dhcps.close()  # we close the socket
+    return data
+
+
+def log(data):
+    print('Log: %s' % data)
+    with open('request.log', 'a+') as f:
+        splitter = '\n' + '-' * 100 + '\n'
+        f.write(splitter)
+        f.write(data)
+        f.write(splitter)
+
+
+def crashLog(data):
+    with open('crashes.log', 'a+') as f:
+        splitter = '\n' + '-' * 100 + '\n'
+        f.write(splitter)
+        f.write(data)
+        f.write(splitter)
 
 
 if __name__ == '__main__':
-    for x in range(100):
-        sender()
+    args = parge_args()
+    s = serial.Serial('/dev/buspirate', 115200, timeout=4)
+    for x in range(255):
+        data = sender(args.iface, x)
+        if args.log:
+            status, dump = logger(s)
+            if not status:
+                print('Reboot')
+                crashLog('Request: %s\n\n%s' % (binascii.hexlify(data), dump))
+                break
