@@ -1,0 +1,449 @@
+{
+    "params": {
+        "SETUP": [],
+        "OPTIONS": [],
+        "DESCRIBE": [],
+        "PAUSE": [],
+        "TEARDOWN": [],
+        "SET_PARAMETER": [],
+        "PLAY": [],
+        "RECORD": [],
+        "ANNOUNCE": [],
+        "POST": [],
+        "GET": [],
+        "GET_PARAMETER": []
+    },
+    "global_fields": [
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Accept"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Accept-Encoding"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Accept-Language"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Allow"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Authorization"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Bandwidth"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Blocksize"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Cache-Control"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Conference"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Connection"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Content-Base"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Content-Encoding"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Content-Language"
+    },
+    {
+        "value": "fuzz",
+        "type": "int",
+        "name": "Content-Length"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Content-Location"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Content-Type"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "CSeq"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Date"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Expires"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "From"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "If-Modified-Since"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Last-Modified"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Proxy-Authenticate"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Proxy-Require"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Public"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Range"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Referer"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Require"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Retry-After"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "RTP-Info"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Scale"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Session"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Server"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Speed"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Transport"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Unsupported"
+    },
+    {
+        "value": "VLC",
+        "type": "string",
+        "name": "User-Agent"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Via"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "WWW-Authenticate"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "ClientChallenge"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "RealChallenge1"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "RealChallenge2"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "RealChallenge3"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Subscribe"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Alert"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "ClientID"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "CompanyID"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "GUID"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "RegionData"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "SupportsMaximumASMBandwidth"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Language"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "PlayerStarttime"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Location"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "ETag"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "If-Match"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Accept-Charset"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Supported"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Vary"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "X-Accelerate-Streaming"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "X-Accept-Authentication"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "X-Accept-Proxy-Authentication"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "X-Broadcast-Id"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "X-Burst-Streaming"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "X-Notice"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "X-Player-Lag-Time"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "X-Playlist"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "X-Playlist-Change-Notice"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "X-Playlist-Gen-Id"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "X-Playlist-Seek-Id"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "X-Proxy-Client-Agent"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "X-Proxy-Client-Verb"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "X-Receding-PlaylistChange"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "X-RTP-Info"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "X-StartupProfile"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Timestamp"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Authentication-Info"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Host"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Pragma"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "X-Server-IP-Address"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "x-sessioncookie"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "RTCP-Interval"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "KeyMgmt"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Pipelined-Requests"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Media-Properties"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Seek-Style"
+    },
+    {
+        "value": "fuzz",
+        "type": "string",
+        "name": "Accept-Ranges"
+    }
+]
+
+}
